@@ -1,3 +1,4 @@
-import LocalMessageDuplexStream from 'post-message-stream'
+import StationExtensionAPI from './page-scripts/StationExtensionAPI'
 
-window.StationExtension = {}
+// @ts-ignore
+window.stationExtension = new StationExtensionAPI()
