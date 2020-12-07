@@ -45,7 +45,6 @@ const connectRemote = (remotePort) => {
                 const getRequest = ({ success }) => typeof success !== 'boolean'
                 const nextRequest =
                   sign.some(getRequest) || post.some(getRequest)
-
                 !nextRequest && closePopup()
               }
             )
