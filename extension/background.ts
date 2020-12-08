@@ -1,7 +1,5 @@
 import extension from 'extensionizer'
 import PortStream from 'extension-port-stream'
-import StationExtensionController from './plugin-scripts/StationExtensionController'
-import pump from 'pump'
 
 function connectRemote(remotePort: chrome.runtime.Port) {
   if (remotePort.name !== 'TerraStationExtension') {
@@ -10,6 +8,28 @@ function connectRemote(remotePort: chrome.runtime.Port) {
 
   const { origin } = remotePort.sender
   const portStream = new PortStream(remotePort)
+  const reply = ({ id, response }) => portStream.write({ id, response })
+
+  portStream.on('data', (data: any) => {
+    if (typeof data === 'object' && 'request' in data) {
+      const { id, request } = data
+      switch (request.type) {
+        case 'signAndBroadcastTx':
+          openPopup()
+          return reply({
+            id,
+            response: { tx: null },
+          })
+        case 'getAccountAddress':
+          return extension.storage?.local.get(['wallet'], ({ wallet }) => {
+            reply({
+              id,
+              response: wallet.address,
+            })
+          })
+      }
+    }
+  })
 }
 
 extension.runtime.onConnect.addListener(connectRemote)
@@ -145,8 +165,6 @@ extension.runtime.onConnect.addListener(connectRemote)
 //     }
 //   })
 // }
-
-extension.runtime.onConnect.addListener(connectRemote)
 
 /* popup */
 // TODO: Actions such as transaction rejection if user closes a popup

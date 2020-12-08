@@ -9,6 +9,25 @@ module.exports = {
     background: path.join(__dirname, 'background.ts'),
     inpage: path.join(__dirname, 'inpage.ts'),
   },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true,
+            },
+          },
+        ],
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.tsx', '.ts', '.js'],
+  },
   output: {
     path: path.join(__dirname, '..', 'build'),
     filename: '[name].js',
