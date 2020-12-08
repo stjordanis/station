@@ -5,7 +5,7 @@
 
   "options_page": "index.html",
   "background": {
-    "scripts": ["background.js"],
+    "scripts": ["hot-reload.js", "background.js"],
     "persistent": true
   },
   "content_scripts": [

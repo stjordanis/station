@@ -7,7 +7,7 @@ import LocalMessageDuplexStream from 'post-message-stream'
 
 export interface SignAndBroadcastTxRequest {
   type: 'signAndBroadcastTx'
-  unsignedTx: StdSignMsg
+  unsignedTx: StdSignMsg.Data
   resolve?: (x: BlockTxBroadcastResult) => void
 }
 
@@ -16,39 +16,40 @@ export interface GetAccountAddressRequest {
   resolve?: (x: AccAddress) => void
 }
 
-export interface GetNetworkRequest {
-  type: 'getNetwork'
+export interface GetNetworkInfoRequest {
+  type: 'getNetworkInfo'
   resolve?: (x: any) => void
 }
 
-export type StationRequest =
+export interface NetworkInfo {
+  chainID: string
+  lcd: string
+  fcd: string
+  ws: string
+}
+
+export type StationExtensionMsg =
   | SignAndBroadcastTxRequest
   | GetAccountAddressRequest
-  | GetNetworkRequest
+  | GetNetworkInfoRequest
 
 export function randomId() {
   return Date.now()
 }
 
 /**
- * This class provides the StationExtensionAPI, accessible through the window.stationExtension object.
+ * This class provides the StationExtensionAPI, accessible through the window.stationExtension
+ * object. This is intended to be used as a singleton through `.getInstance()`, not creating
+ * not created directly with the `new` keyword.
  */
 export default class StationExtensionAPI {
   static instance: StationExtensionAPI
   inpageStream: any
   requestsById: {
-    [requestId: string]:
-      | SignAndBroadcastTxRequest
-      | GetAccountAddressRequest
-      | GetNetworkRequest
+    [requestId: string]: StationExtensionMsg
   }
 
-  constructor() {
-    if (StationExtensionAPI.instance) {
-      return
-    }
-
-    StationExtensionAPI.instance = this
+  private constructor() {
     this.inpageStream = new LocalMessageDuplexStream({
       name: 'station:inpage',
       target: 'station:content',
@@ -62,7 +63,18 @@ export default class StationExtensionAPI {
     this.requestsById = {}
   }
 
-  public async _request(args: StationRequest): Promise<any> {
+  /**
+   * Retrieves the singleton instance of the API.
+   */
+  public static getInstance(): StationExtensionAPI {
+    if (!StationExtensionAPI.instance) {
+      StationExtensionAPI.instance = new StationExtensionAPI()
+    }
+
+    return StationExtensionAPI.instance
+  }
+
+  public async _request(args: StationExtensionMsg): Promise<any> {
     return new Promise((resolve, reject) => {
       const id = randomId()
       const request = {
@@ -77,7 +89,7 @@ export default class StationExtensionAPI {
   }
 
   public async signAndBroadcastTx(
-    unsignedTx: StdSignMsg
+    unsignedTx: StdSignMsg.Data
   ): Promise<BlockTxBroadcastResult> {
     return this._request({
       type: 'signAndBroadcastTx',
@@ -91,9 +103,9 @@ export default class StationExtensionAPI {
     })
   }
 
-  public async getNetwork(): Promise<any> {
+  public async getNetworkInfo(): Promise<any> {
     return this._request({
-      type: 'getNetwork',
+      type: 'getNetworkInfo',
     })
   }
 }

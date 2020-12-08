@@ -1,53 +1,16 @@
 import extension from 'extensionizer'
-import PortStream from 'extension-port-stream'
-import { StationExtensionState } from './plugin-scripts/StationExtensionState'
+import StationExtensionState from './StationExtensionState'
+import StationExtensionController from './StationExtensionController'
 
 function connectRemote(remotePort: chrome.runtime.Port) {
   if (remotePort.name !== 'TerraStationExtension') {
     return
   }
 
-  const { origin } = remotePort.sender
-  const portStream = new PortStream(remotePort)
-  const reply = ({ id, response }) => portStream.write({ id, response })
-  const stationExtensionState = new StationExtensionState()
-  // stationExtensionState.store
-  //   onTxQueueChanged: (changed) => {
-  //     if (changed && changed.origin === origin) {
-  //       reply({
-  //         id: changed.id,
-  //       })
-  //     }
-  //   },
-  // })
+  const state = new StationExtensionState()
+  const controller = new StationExtensionController(state, remotePort)
 
-  portStream.on('data', (data: any) => {
-    if (typeof data === 'object' && 'request' in data) {
-      const { id, request } = data
-      switch (request.type) {
-        case 'signAndBroadcastTx':
-          openPopup()
-          return reply({
-            id,
-            response: { tx: null },
-          })
-        case 'getAccountAddress':
-          return extension.storage?.local.get(['wallet'], ({ wallet }) => {
-            reply({
-              id,
-              response: wallet.address,
-            })
-          })
-        case 'getNetwork':
-          return extension.storage?.local.get(['network'], ({ network }) => {
-            reply({
-              id,
-              response: network,
-            })
-          })
-      }
-    }
-  })
+  controller.listen()
 }
 
 // const connectRemote = (remotePort) => {
@@ -189,7 +152,7 @@ function connectRemote(remotePort: chrome.runtime.Port) {
 //         break
 //     }
 //   })
-}
+// }
 
 extension.runtime.onConnect.addListener(connectRemote)
 

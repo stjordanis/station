@@ -1,35 +1,11 @@
 import extension from 'extensionizer'
-import { AccAddress, StdSignMsg } from '@terra-money/terra.js'
-
-export interface SignAndBroadcastTxMsg {
-  type: 'signAndBroadcastTx'
-  unsignedTx: StdSignMsg.Data
-}
-
-export interface GetAccountAddressMsg {
-  type: 'getAccountAddress'
-}
-
-export interface GetNetworkInfoMsg {
-  type: 'getNetworkInfo'
-}
-
-export type StationExtensionMsg =
-  | SignAndBroadcastTxMsg
-  | GetAccountAddressMsg
-  | GetNetworkInfoMsg
-
-export interface NetworkInfo {
-  chainID: string
-  lcd: string
-  fcd: string
-  ws: string
-}
+import { AccAddress } from '@terra-money/terra.js'
+import { NetworkInfo } from './StationExtensionAPI'
 
 /**
  * Manages the Station Extension's application state inside the extension's local storage.
  */
-export class StationExtensionState {
+export default class StationExtensionState {
   private store: chrome.storage.LocalStorageArea
 
   constructor() {

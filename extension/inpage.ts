@@ -1,4 +1,4 @@
-import StationExtensionAPI from './page-scripts/StationExtensionAPI'
+import StationExtensionAPI from './StationExtensionAPI'
 
 // @ts-ignore
-window.stationExtension = new StationExtensionAPI()
+window.stationExtension = new StationExtensionAPI.getInstance()
