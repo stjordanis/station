@@ -87,6 +87,8 @@ export default class StationExtensionController {
           result: null,
           unsignedTx: request.unsignedTx,
         })
+        // this.state.setPopupPage(...)
+        openPopup()
     }
   }
 }
