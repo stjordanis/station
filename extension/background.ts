@@ -1,5 +1,4 @@
 import extension from 'extensionizer'
-import StationExtensionState from './StationExtensionState'
 import StationExtensionController from './StationExtensionController'
 
 function connectRemote(remotePort: chrome.runtime.Port) {
@@ -7,10 +6,10 @@ function connectRemote(remotePort: chrome.runtime.Port) {
     return
   }
 
-  const state = new StationExtensionState()
-  const controller = new StationExtensionController(state, remotePort)
+  const controller = new StationExtensionController(remotePort)
 
-  controller.listen()
+  controller.listenAPIRequests()
+  controller.listenTxQueueUpdates()
 }
 
 // const connectRemote = (remotePort) => {
@@ -287,42 +286,3 @@ extension.runtime.onConnect.addListener(connectRemote)
 //     }
 //   })
 // }
-
-/* popup */
-// TODO: Actions such as transaction rejection if user closes a popup
-let tabId = undefined
-extension.tabs.onRemoved.addListener(() => (tabId = undefined))
-
-const POPUP_WIDTH = 420
-const POPUP_HEIGHT = 640
-
-const openPopup = () => {
-  const popup = {
-    type: 'popup',
-    focused: true,
-    width: POPUP_WIDTH,
-    height: POPUP_HEIGHT,
-  }
-  !tabId &&
-    extension.tabs.create(
-      { url: extension.extension.getURL('index.html'), active: false },
-      (tab) => {
-        tabId = tab.id
-        extension.windows.getCurrent((window) => {
-          const top = Math.max(window.top, 0) || 0
-          const left =
-            Math.max(window.left + (window.width - POPUP_WIDTH), 0) || 0
-
-          const config = { ...popup, tabId: tab.id, top, left }
-          extension.windows.create(config)
-        })
-      }
-    )
-}
-
-const closePopup = () => {
-  tabId && extension.tabs.remove(tabId)
-}
-
-/* utils */
-const capitalize = (string) => string.charAt(0).toUpperCase() + string.slice(1)

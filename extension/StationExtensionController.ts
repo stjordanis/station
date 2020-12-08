@@ -1,6 +1,7 @@
 import StationExtensionState from './StationExtensionState'
 import { StationExtensionMsg } from './StationExtensionAPI'
 import PortStream from 'extension-port-stream'
+import extension from 'extensionizer'
 
 /**
  * Manages extension's communication with the inpage API. Main job is to listen for
@@ -8,12 +9,11 @@ import PortStream from 'extension-port-stream'
  * response, which will cause the request's Promise to resolve on the browser side.
  */
 export default class StationExtensionController {
+  private state: StationExtensionState
   private stream: PortStream
 
-  constructor(
-    private state: StationExtensionState,
-    private remotePort: chrome.runtime.Port
-  ) {
+  constructor(private remotePort: chrome.runtime.Port) {
+    this.state = new StationExtensionState()
     this.stream = new PortStream(remotePort)
   }
 
@@ -31,12 +31,19 @@ export default class StationExtensionController {
   /**
    * Start listening for data from the StationExtensionAPI, and process requests.
    */
-  public listen() {
+  public listenAPIRequests() {
     this.stream.on('data', (data: any) => {
-      if (typeof data === 'object' && 'request' in data) {
+      if (typeof data === 'object' && 'id' in data && 'request' in data) {
         this.handle(data)
       }
     })
+  }
+
+  /**
+   * Start listening for data storage changes from signing tx and dispatch txResults
+   */
+  public listenTxQueueUpdates() {
+    extension.storage.onChanged.addListener(console.log)
   }
 
   public handle(data: { id: any; request: StationExtensionMsg }): any {
@@ -48,11 +55,47 @@ export default class StationExtensionController {
      */
     switch (request.type) {
       case 'getAccountAddress':
-        return this.replyPromise(id, this.state.getAccountAddress())
+        this.replyPromise(id, this.state.getAccountAddress())
+        this.state.setAccountAddress('a')
+        return
       case 'getNetworkInfo':
         return this.replyPromise(id, this.state.getNetworkInfo())
       case 'signAndBroadcastTx':
         console.log('Not Implemented.')
     }
   }
+}
+
+let tabId = undefined
+extension.tabs.onRemoved.addListener(() => (tabId = undefined))
+
+const POPUP_WIDTH = 420
+const POPUP_HEIGHT = 640
+
+const openPopup = () => {
+  const popup = {
+    type: 'popup',
+    focused: true,
+    width: POPUP_WIDTH,
+    height: POPUP_HEIGHT,
+  }
+  !tabId &&
+    extension.tabs.create(
+      { url: extension.extension.getURL('index.html'), active: false },
+      (tab) => {
+        tabId = tab.id
+        extension.windows.getCurrent((window) => {
+          const top = Math.max(window.top, 0) || 0
+          const left =
+            Math.max(window.left + (window.width - POPUP_WIDTH), 0) || 0
+
+          const config = { ...popup, tabId: tab.id, top, left }
+          extension.windows.create(config)
+        })
+      }
+    )
+}
+
+const closePopup = () => {
+  tabId && extension.tabs.remove(tabId)
 }

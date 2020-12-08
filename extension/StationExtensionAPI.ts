@@ -56,8 +56,13 @@ export default class StationExtensionAPI {
     })
 
     this.inpageStream.on('data', (data: any) => {
-      this.requestsById[data.id].resolve(data.response)
-      delete this.requestsById[data.id]
+      if (typeof data === 'object' && 'id' in data && 'response' in data) {
+        const { id, response } = data
+        if (id in this.requestsById) {
+          this.requestsById[id].resolve(response)
+          delete this.requestsById[id]
+        }
+      }
     })
 
     this.requestsById = {}
