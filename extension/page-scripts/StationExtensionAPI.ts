@@ -16,15 +16,15 @@ export interface GetAccountAddressRequest {
   resolve?: (x: AccAddress) => void
 }
 
-export interface GetChainIdRequest {
-  type: 'getChainId'
-  resolve?: (x: string) => void
+export interface GetNetworkRequest {
+  type: 'getNetwork'
+  resolve?: (x: any) => void
 }
 
 export type StationRequest =
   | SignAndBroadcastTxRequest
   | GetAccountAddressRequest
-  | GetChainIdRequest
+  | GetNetworkRequest
 
 export function randomId() {
   return Date.now()
@@ -40,7 +40,7 @@ export default class StationExtensionAPI {
     [requestId: string]:
       | SignAndBroadcastTxRequest
       | GetAccountAddressRequest
-      | GetChainIdRequest
+      | GetNetworkRequest
   }
 
   constructor() {
@@ -91,9 +91,9 @@ export default class StationExtensionAPI {
     })
   }
 
-  public async getChainId(): Promise<any> {
+  public async getNetwork(): Promise<any> {
     return this._request({
-      type: 'getChainId',
+      type: 'getNetwork',
     })
   }
 }
