@@ -1,4 +1,4 @@
-import StationExtensionState from './StationExtensionState'
+import StationExtensionState, { TxQueue } from './StationExtensionState'
 import { StationExtensionMsg } from './StationExtensionAPI'
 import PortStream from 'extension-port-stream'
 import extension from 'extensionizer'
@@ -34,7 +34,7 @@ export default class StationExtensionController {
   public listenAPIRequests() {
     this.stream.on('data', (data: any) => {
       if (typeof data === 'object' && 'id' in data && 'request' in data) {
-        this.handle(data)
+        this.handleAPIRequest(data)
       }
     })
   }
@@ -43,10 +43,33 @@ export default class StationExtensionController {
    * Start listening for data storage changes from signing tx and dispatch txResults
    */
   public listenTxQueueUpdates() {
-    extension.storage.onChanged.addListener(console.log)
+    const onChanged: chrome.storage.StorageChangedEvent =
+      extension.storage.onChanged
+
+    onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local') {
+        return
+      }
+
+      const { oldValue, newValue } = changes['txQueue'] || {}
+      if (oldValue && newValue) {
+        this.handleTxQueueUpdate(newValue)
+      }
+    })
   }
 
-  public handle(data: { id: any; request: StationExtensionMsg }): any {
+  public handleTxQueueUpdate(txQueue: TxQueue) {
+    for (const id in txQueue) {
+      if (txQueue[id].pending === false) {
+        this.reply(id, txQueue[id].result)
+      }
+    }
+  }
+
+  public async handleAPIRequest(data: {
+    id: any
+    request: StationExtensionMsg
+  }) {
     const { id, request } = data
     const { origin } = this.remotePort.sender || {}
 
@@ -55,13 +78,15 @@ export default class StationExtensionController {
      */
     switch (request.type) {
       case 'getAccountAddress':
-        this.replyPromise(id, this.state.getAccountAddress())
-        this.state.setAccountAddress('a')
-        return
+        return this.replyPromise(id, this.state.getAccountAddress())
       case 'getNetworkInfo':
         return this.replyPromise(id, this.state.getNetworkInfo())
       case 'signAndBroadcastTx':
-        console.log('Not Implemented.')
+        await this.state.updateTxQueue(id, {
+          pending: true,
+          result: null,
+          unsignedTx: request.unsignedTx,
+        })
     }
   }
 }
