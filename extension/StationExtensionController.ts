@@ -1,7 +1,8 @@
-import StationExtensionState, { TxQueue } from './StationExtensionState'
 import { StationExtensionMsg } from './StationExtensionAPI'
 import PortStream from 'extension-port-stream'
 import extension from 'extensionizer'
+import { store } from './store'
+import { addRequest, resolveRequest } from './slices/queueSlice'
 
 /**
  * Manages extension's communication with the inpage API. Main job is to listen for
@@ -9,11 +10,9 @@ import extension from 'extensionizer'
  * response, which will cause the request's Promise to resolve on the browser side.
  */
 export default class StationExtensionController {
-  private state: StationExtensionState
   private stream: PortStream
 
   constructor(private remotePort: chrome.runtime.Port) {
-    this.state = new StationExtensionState()
     this.stream = new PortStream(remotePort)
   }
 
@@ -58,7 +57,7 @@ export default class StationExtensionController {
     })
   }
 
-  public handleTxQueueUpdate(txQueue: TxQueue) {
+  public handleTxQueueUpdate(txQueue: any) {
     for (const id in txQueue) {
       if (txQueue[id].pending === false) {
         this.reply(id, txQueue[id].result)
@@ -78,17 +77,28 @@ export default class StationExtensionController {
      */
     switch (request.type) {
       case 'getAccountAddress':
-        return this.replyPromise(id, this.state.getAccountAddress())
+        return this.reply(id, store.getState().wallet.address)
       case 'getNetworkInfo':
-        return this.replyPromise(id, this.state.getNetworkInfo())
+        return this.reply(id, store.getState().network)
       case 'signAndBroadcastTx':
-        await this.state.updateTxQueue(id, {
-          pending: true,
-          result: null,
-          unsignedTx: request.unsignedTx,
+        store.dispatch(
+          addRequest({
+            id,
+            pending: true,
+            result: null,
+            unsignedTx: request.unsignedTx,
+          })
+        )
+        openPopup({
+          page: '/connect',
         })
-        // this.state.setPopupPage(...)
-        openPopup()
+        store.dispatch({
+          resolveRequest({ id, result: {} }),
+        })
+        this.reply(
+          id,
+          store.getState().queue.signRequests.find((req) => req.id === id).result
+        )
     }
   }
 }

@@ -12,6 +12,8 @@ import Network from '../pages/settings/Network'
 import Connect from '../extension/Connect'
 import Confirm from '../extension/Confirm'
 
+import { store } from './store'
+
 const Extension = () => {
   const { user } = useAuth()
   const { connect, request } = useExtension()
@@ -20,16 +22,18 @@ const Extension = () => {
     (list) => list.filter(({ success }) => isNil(success)).length
   )
 
-  /* Redirect on requested */
-  useRedirect(
-    !user
-      ? '/auth'
-      : connect.list.length
-      ? '/connect'
-      : isRequested
-      ? '/confirm'
-      : undefined
-  )
+  useRedirect('/connect')
+
+  // /* Redirect on requested */
+  // useRedirect(
+  //   !user
+  //     ? '/auth'
+  //     : connect.list.length
+  //     ? '/connect'
+  //     : isRequested
+  //     ? '/confirm'
+  //     : undefined
+  // )
 
   return (
     <Switch>

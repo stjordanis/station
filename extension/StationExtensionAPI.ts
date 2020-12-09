@@ -21,13 +21,6 @@ export interface GetNetworkInfoRequest {
   resolve?: (x: any) => void
 }
 
-export interface NetworkInfo {
-  chainID: string
-  lcd: string
-  fcd: string
-  ws: string
-}
-
 export type StationExtensionMsg =
   | SignAndBroadcastTxRequest
   | GetAccountAddressRequest
