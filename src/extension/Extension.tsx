@@ -4,15 +4,18 @@ import { useHistory, useLocation } from 'react-router-dom'
 import { isNil } from 'ramda'
 import '@ledgerhq/hw-transport-webusb' // include in bundle
 import { useAuth } from '@terra-money/use-station'
-import { useExtension } from './useExtension'
+import { useExtension } from '../hooks/useExtension'
 import AuthRoute from '../auth/AuthRoute'
 import ManageWallet from '../auth/ManageWallet'
 import Bank from '../pages/bank/Bank'
 import Network from '../pages/settings/Network'
-import Connect from '../extension/Connect'
-import Confirm from '../extension/Confirm'
+import Connect from './Connect'
+import Confirm from './Confirm'
 
-import { store } from './store'
+import { Store } from 'webext-redux'
+
+const store = new Store()
+
 
 const Extension = () => {
   const { user } = useAuth()
@@ -22,18 +25,17 @@ const Extension = () => {
     (list) => list.filter(({ success }) => isNil(success)).length
   )
 
-  useRedirect('/connect')
 
-  // /* Redirect on requested */
-  // useRedirect(
-  //   !user
-  //     ? '/auth'
-  //     : connect.list.length
-  //     ? '/connect'
-  //     : isRequested
-  //     ? '/confirm'
-  //     : undefined
-  // )
+  /* Redirect on requested */
+  useRedirect(
+    !user
+      ? '/auth'
+      : connect.list.length
+      ? '/connect'
+      : isRequested
+      ? '/confirm'
+      : undefined
+  )
 
   return (
     <Switch>

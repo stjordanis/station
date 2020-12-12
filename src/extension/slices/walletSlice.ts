@@ -6,7 +6,7 @@ export interface WalletState {
 }
 
 const initialState: WalletState = {
-  address: undefined,
+  address: '',
 }
 
 export const walletSlice = createSlice({

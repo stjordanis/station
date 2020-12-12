@@ -3,7 +3,7 @@ import {
   BlockTxBroadcastResult,
   AccAddress,
 } from '@terra-money/terra.js'
-import LocalMessageDuplexStream from 'post-message-stream'
+const LocalMessageDuplexStream = require('post-message-stream')
 
 export interface SignAndBroadcastTxRequest {
   type: 'signAndBroadcastTx'
@@ -52,6 +52,7 @@ export default class StationExtensionAPI {
       if (typeof data === 'object' && 'id' in data && 'response' in data) {
         const { id, response } = data
         if (id in this.requestsById) {
+          // @ts-ignore
           this.requestsById[id].resolve(response)
           delete this.requestsById[id]
         }

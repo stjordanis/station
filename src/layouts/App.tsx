@@ -27,13 +27,19 @@ import AuthModal from '../auth/AuthModal'
 import useMergeChains from '../pages/settings/useMergeChains'
 
 import Extension from '../extension/Extension'
-import { useExtensionRequested } from '../extension/useExtension'
-import { ExtensionProvider } from '../extension/useExtension'
+import { useExtensionRequested } from '../hooks/useExtension'
+import { ExtensionProvider } from '../hooks/useExtension'
 
 import Nav from './Nav'
 import Header from './Header'
 import UpdateElectron from './UpdateElectron'
 import s from './App.module.scss'
+
+import { Store } from 'webext-redux'
+import { setNetwork } from '../extension/slices/networkSlice'
+import { setAddress } from '../extension/slices/walletSlice'
+
+const store = new Store()
 
 const App = () => {
   useScrollToTop()
@@ -172,7 +178,7 @@ const useOnChainChange = ({
   const chains = useMergeChains()
   useEffect(() => {
     goBack && push(goBack)
-    extension.storage?.local.set({ network: chains[chain ?? 'mainnet'] })
+    store.dispatch(setNetwork(chains[chain ?? 'mainnet']))
     // eslint-disable-next-line
   }, [chain])
 }
@@ -189,7 +195,7 @@ const useAuthModal = (modal: Modal, user?: User) => {
       const { recentAddresses = [] } = localSettings.get()
       const next = [address, ...without([address], recentAddresses)]
       localSettings.set({ user, recentAddresses: next })
-      extension.storage?.local.set({ wallet: { address } })
+      store.dispatch(setAddress(address))
     }
 
     const onSignOut = () => {

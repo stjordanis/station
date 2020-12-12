@@ -1,10 +1,13 @@
-import React from 'react'
-import { useExtension } from './useExtension'
+import React, { ReactPropTypes } from 'react'
+import { useExtension } from '../hooks/useExtension'
 import Icon from '../components/Icon'
 import s from './Connect.module.scss'
 
 import { setAddress } from './slices/walletSlice'
-import { store } from './store'
+import { Store } from 'webext-redux'
+
+const store = new Store()
+
 
 const Connect = () => {
   const { connect } = useExtension()
@@ -20,7 +23,7 @@ const Connect = () => {
       <footer className={s.footer}>
         <button
           className="btn btn-primary"
-          onClick={() => store.dispatch(setAddress(origin))}
+          onClick={() => store.dispatch(setAddress('terranone'))}
         >
           Allow
         </button>

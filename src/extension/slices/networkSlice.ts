@@ -8,10 +8,10 @@ export interface NetworkState {
 }
 
 const initialState: NetworkState = {
-  chainID: undefined,
-  lcd: undefined,
-  fcd: undefined,
-  ws: undefined,
+  chainID: '',
+  lcd: '',
+  fcd: '',
+  ws: '',
 }
 
 export const networkSlice = createSlice({
@@ -19,9 +19,11 @@ export const networkSlice = createSlice({
   initialState,
   reducers: {
     setNetwork(state, action: PayloadAction<NetworkState>) {
-      state = {
-        ...action.payload,
-      }
+      const { chainID, lcd, fcd, ws } = action.payload
+      state.chainID = chainID
+      state.lcd = lcd
+      state.fcd = fcd
+      state.ws = ws
     },
   },
 })

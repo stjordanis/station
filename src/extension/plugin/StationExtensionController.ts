@@ -1,8 +1,9 @@
+// @ts-nocheck
 import { StationExtensionMsg } from './StationExtensionAPI'
-import PortStream from 'extension-port-stream'
+const PortStream = require('extension-port-stream')
 import extension from 'extensionizer'
 import { store } from './store'
-import { addRequest, resolveRequest } from './slices/queueSlice'
+import { addRequest, resolveRequest } from '../slices/queueSlice'
 
 /**
  * Manages extension's communication with the inpage API. Main job is to listen for
@@ -10,7 +11,7 @@ import { addRequest, resolveRequest } from './slices/queueSlice'
  * response, which will cause the request's Promise to resolve on the browser side.
  */
 export default class StationExtensionController {
-  private stream: PortStream
+  private stream: any
 
   constructor(private remotePort: chrome.runtime.Port) {
     this.stream = new PortStream(remotePort)
@@ -88,16 +89,6 @@ export default class StationExtensionController {
             result: null,
             unsignedTx: request.unsignedTx,
           })
-        )
-        openPopup({
-          page: '/connect',
-        })
-        store.dispatch({
-          resolveRequest({ id, result: {} }),
-        })
-        this.reply(
-          id,
-          store.getState().queue.signRequests.find((req) => req.id === id).result
         )
     }
   }

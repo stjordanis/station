@@ -1,6 +1,6 @@
 import extension from 'extensionizer'
-import PortStream from 'extension-port-stream'
-import LocalMessageDuplexStream from 'post-message-stream'
+const PortStream = require('extension-port-stream')
+const LocalMessageDuplexStream = require('post-message-stream')
 
 if (shouldInjectProvider()) {
   injectScript()

@@ -30,7 +30,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    path: path.join(__dirname, '..', 'build'),
+    path: path.join(__dirname, '../../..', 'build'),
     filename: '[name].js',
   },
 }
